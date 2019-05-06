@@ -61,6 +61,22 @@ shinyUI(dashboardPage(
            label = ("Pick Your Poison:"),
            choices = list("red" = "red", "white" = "white"),
            selected = "white"),
+       
+       selectizeInput( 
+         "keyword1", 
+         "Enter or select a descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
+         choices = sort(common_words), 
+         multiple = F,
+         selected = sample(common_words, 1)
+       ),
+       
+       selectizeInput( 
+         "keyword2", 
+         "Enter or select a second descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
+         choices = sort(common_words), 
+         multiple = F,
+         selected = sample(common_words, 1)
+       ),
         
        selectizeInput(
            "country",
@@ -75,26 +91,9 @@ shinyUI(dashboardPage(
            'Enter or select a wine variety or varieties (e.g., merlot, chardonnay...)
             [Note: some very common varieties not found in dataset.]', 
            choices = sort(unique(wines_df$variety)), 
-           multiple = T, 
-           selected = 'Chardonnay'
-           ),
+           multiple = T 
+        ), 
        
-       selectizeInput( 
-         "keyword1", 
-         "Enter or select a descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
-         choices = sort(common_words), 
-         multiple = F,
-         selected = sample(common_words, 1),
-       ),
-       
-       selectizeInput( 
-         "keyword2", 
-         "Enter or select a second descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
-         choices = sort(common_words), 
-         multiple = F,
-         selected = sample(common_words, 1),
-       ),
-      
        sliderInput(
            "price", 
            "Select a price range (in USD):", 
@@ -102,23 +101,145 @@ shinyUI(dashboardPage(
            max = 200, #due to outliers
            value = c(50,150))), 
        
-       tabPanel("Wine List", 
-       fluidRow(box(width = 16, height = "80%", dataTableOutput("wine_rec_table")))),
-       
-       tabPanel("Wines (Purely) by Description", 
+       tabPanel("Wine List by Color, Description, and Price", 
                 fluidRow(box(width = 16, height = "80%", dataTableOutput("wine_descr_table")))),
+       
+       tabPanel("Wine List by Country, Color, Variety, and Price", 
+       fluidRow(box(width = 16, height = "80%", dataTableOutput("wine_rec_table")))),
        
        tabPanel("Price vs. Point Relationships for Selected Wines", 
                 fluidRow(box(width = 16, height = "80%", htmlOutput("interactive_price_point_plot"))))
-             )
-           )
-         )
-        )
+        
        )
-      ) 
-    
-    
-
+    ),
+  
+      tabItem(tabName ='maps',
+          tabsetPanel(type = 'tabs',
+            tabPanel('World Maps',     
+            radioButtons(
+              "world_map_type",
+              label = ("Select map content:"),
+              choices = list("Wine distribution per country (excluding the US, Italy, and France)" = "wpc","Number of varieties per country" = "nv", "Average price per country" = 'apr', "Average points per country" = "apt"), 
+              selected = "wpc"),     
+              fluidRow(box(width = 16, height = "80%", htmlOutput("world_map")))),
+  
+              tabPanel('US Maps',     
+                     radioButtons(
+                       "us_map_type",
+                       label = ("Select map content:"),
+                       choices = list("Wine distribution per US State" = "wps","Number of varieties per state" = "nvs", "Average price per state" = 'aps', "Average points per state" = "apts"), 
+                       selected = "wps"),     
+                     fluidRow(box(width = 16, height = "80%", htmlOutput("us_map"))))
+             ) #tabsetpanel
+           ), #tabitem
+  
+    tabItem(tabName ='graphs',
+            tabsetPanel(type = 'tabs',
+                      tabPanel('By Country',  
+                      
+                               selectizeInput(
+                                 "graph_country",
+                                 'Select a country:', 
+                                 choices = sort(unique(wines_df_country_graph$country)), 
+                                 multiple = F, 
+                                 selected = 'Argentina'
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxWorldPrice"),
+                                 infoBoxOutput("meanWorldPrice"),
+                                 infoBoxOutput("minWorldPrice")
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxWorldPoints"),
+                                 infoBoxOutput("meanWorldPoints"),
+                                 infoBoxOutput("minWorldPoints")
+                               ), 
+                               
+                               fluidRow(
+                                 infoBoxOutput("worldPricePointsCorr")
+                               ),
+                               fluidRow(
+                                 plotlyOutput("scatterByCountry")
+                               )
+                             ), 
+                               
+                            tabPanel('By US State',  
+                                        
+                                  selectizeInput(
+                                    "graph_state",
+                                     'Select a US State:', 
+                                      choices = sort(unique(wines_df_country_graph[wines_df_country_graph$country == 'US', 'province'])), 
+                                      multiple = F, 
+                                      selected = 'California'
+                                      ),
+                                        
+                                      fluidRow(
+                                      infoBoxOutput("maxUSPrice"),
+                                      infoBoxOutput("meanUSPrice"),
+                                      infoBoxOutput("minUSPrice")
+                                      ),
+                                        
+                                     fluidRow(
+                                      infoBoxOutput("maxUSPoints"),
+                                      infoBoxOutput("meanUSPoints"),
+                                      infoBoxOutput("minUSPoints")
+                                      ), 
+                                        
+                                      fluidRow(
+                                      infoBoxOutput("USPricePointsCorr")
+                                        ),
+                                  
+                                      fluidRow(
+                                      plotlyOutput("scatterByState")
+                                      )
+                                    ),
+                            tabPanel('By Variety',  
+                               
+                                radioButtons(
+                                 "graph_color",
+                                 label = ("Pick Your Poison:"),
+                                 choices = list("red" = "red", "white" = "white"),
+                                 selected = "white"),
+                               
+                               
+                               selectizeInput(
+                                 "graph_variety",
+                                 'Select a Variety:', 
+                                 choices = sort(unique(wines_df_country_graph[wines_df_country_graph$country == 'US', 'province'])), 
+                                 multiple = F, 
+                                ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxVarPrice"),
+                                 infoBoxOutput("meanVarPrice"),
+                                 infoBoxOutput("minVarPrice")
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxVarPoints"),
+                                 infoBoxOutput("meanVarPoints"),
+                                 infoBoxOutput("minVarPoints")
+                               ), 
+                               
+                               fluidRow(
+                                 infoBoxOutput("VarPricePointsCorr")
+                               ),
+                               
+                               fluidRow(
+                                 plotlyOutput("scatterByVariety")
+                               )
+                              )
+                             )
+                           ) 
+                                       
+                                       
+  
+           ) #tabitems 
+          ) ##dashboardbody
+         ) #dashboard page 
+        ) #shinyUI
 
 
        
