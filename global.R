@@ -38,9 +38,7 @@ wines_df_filtered <- wines_df %>% group_by(country) %>% summarise(cnt = n()) %>%
 wines_df_country_graph <- semi_join(wines_df, wines_df_filtered, by = 'country')
 
 #price and points stats for entire dataset 
-wines_df_world_stats <- wines_df %>%summarise(max_price = max(price), mean_price = mean(price), min_price = min(price), max_points = max(points), mean_points = mean(points), min_points = min(points), corr = cor(price, points, method = 'pearson')) 
-
-
+wines_df_world_stats <- wines_df %>%summarise(max_price = max(price), mean_price = round(mean(price)), min_price = min(price), max_points = max(points), mean_points = round(mean(points)), min_points = min(points), corr = round(cor(price, points, method = 'pearson'), digits = 2), red_perc = round((sum(color == 'red')/n()) * 100, digits = 2), white_perc =  round((sum(color == 'white')/n()) * 100, digits = 2)) 
 
 
 

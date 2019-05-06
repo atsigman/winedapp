@@ -87,6 +87,16 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
    infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
  
+ output$worldRedPerc <- renderInfoBox({ 
+   red_perc <-  wines_df_country_graph %>% filter(country == input$graph_country) %>% summarise(red_perc = round((sum(color == 'red')/n()) * 100)) %>% select(red_perc) 
+   infoBox('% Red Wine', red_perc, icon = icon('wine_glass'), color = 'red')
+ })
+ 
+ output$worldWhitePerc <- renderInfoBox({ 
+   white_perc <- wines_df_country_graph %>% filter(country == input$graph_country) %>% summarise(white_perc = round((sum(color == 'white')/n()) * 100)) %>% select(white_perc) 
+   infoBox('% White Wine', white_perc, icon = icon('wine_glass'), color = 'yellow')
+ })
+ 
  #by US State: 
  output$maxUSPrice <- renderInfoBox({ 
    max_price <- wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% summarise(max_price = max(price)) %>% select(max_price)
@@ -122,6 +132,16 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
    price_points_corr <- wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% summarise(corr = round(cor(price, points, method = 'pearson'), digits = 2)) %>% select(corr)
    infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
+ 
+ output$USRedPerc <- renderInfoBox({ 
+   red_perc <-  wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% summarise(red_perc = round((sum(color == 'red')/n()) * 100)) %>% select(red_perc) 
+   infoBox('% Red Wine', red_perc, icon = icon('wine_glass'), color = 'red')
+ })
+ 
+ output$USWhitePerc <- renderInfoBox({ 
+   white_perc <- wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% summarise(white_perc = round((sum(color == 'white')/n()) * 100)) %>% select(white_perc) 
+   infoBox('% White Wine', white_perc, icon = icon('wine_glass'), color = 'yellow')
+ })
  
  #by variety 
  
@@ -161,42 +181,53 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  }) 
  
  
+ 
  #for the entire dataset: 
  
- output$maxVarPrice <- renderInfoBox({ 
-   max_price <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(max_price = max(price)) %>% select(max_price)
+ output$maxDSPrice <- renderInfoBox({ 
+   max_price <- wines_df_world_stats %>%  select(max_price)
    infoBox('Max Price', max_price, icon = icon('hand-o-up'), color = 'green') 
  }) 
  
- output$meanVarPrice <- renderInfoBox({ 
-   mean_price <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(mean_price = round(mean(price))) %>% select(mean_price)
+ output$meanDSPrice <- renderInfoBox({ 
+   mean_price <- wines_df_world_stats %>%  select(mean_price)
    infoBox('Mean Price', mean_price, icon = icon('arrows-alt-h'), color = 'blue') 
  }) 
  
- output$minVarPrice <- renderInfoBox({ 
-   min_price <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(min_price = min(price)) %>% select(min_price)
+ output$minDSPrice <- renderInfoBox({ 
+   min_price <- wines_df_world_stats %>% select(min_price)
    infoBox('Min Price', min_price, icon = icon('hand-o-down'), color = 'red') 
  }) 
  
- output$maxVarPoints <- renderInfoBox({ 
-   max_points <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(max_points = max(points)) %>% select(max_points)
+ output$maxDSPoints <- renderInfoBox({ 
+   max_points <- wines_df_world_stats %>%  select(max_points)
    infoBox('Max Points', max_points, icon = icon('hand-o-up'), color = 'green') 
  }) 
  
- output$meanVarPoints <- renderInfoBox({ 
-   mean_points <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(mean_points = round(mean(points))) %>% select(mean_points)
+ output$meanDSPoints <- renderInfoBox({ 
+   mean_points <- wines_df_world_stats %>% select(mean_points)
    infoBox('Mean Points', mean_points, icon = icon('arrows-alt-h'), color = 'blue') 
  }) 
  
- output$minVarPoints <- renderInfoBox({ 
-   min_points <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(min_points = min(points)) %>% select(min_points)
+ output$minDSPoints <- renderInfoBox({ 
+   min_points <- wines_df_world_stats %>%  select(min_points)
    infoBox('Min Points', min_points, icon = icon('hand-o-down'), color = 'red') 
  }) 
  
- output$VarPricePointsCorr <- renderInfoBox({ 
-   price_points_corr <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(corr = round(cor(price, points, method = 'pearson'), digits = 2)) %>% select(corr)
+ output$DSPricePointsCorr <- renderInfoBox({ 
+   price_points_corr <- wines_df_world_stats %>%  select(corr)
    infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
+ 
+ output$DSRedPerc <- renderInfoBox({ 
+   red_perc <-wines_df_world_stats %>%  select(red_perc) 
+   infoBox('% Red Wine', red_perc, icon = icon('wine_glass'), color = 'red')
+   })
+ 
+ output$DSWhitePerc <- renderInfoBox({ 
+   white_perc <-wines_df_world_stats %>%  select(white_perc) 
+   infoBox('% White Wine', white_perc, icon = icon('wine_glass'), color = 'yellow')
+ })
  
  
  #price-point plots by country, US state, variety 
@@ -212,6 +243,7 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  output$scatterByVariety <- renderPlotly({
   scatter_graph_Variety <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shape = country), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Top 100 Wines') 
 })
+ 
 
     #OBSERVE FUNCTIONS for relevant inputs 
   
@@ -224,7 +256,6 @@ updateSelectizeInput(
     choices = variety_observe
   )
 
-
 #observe color choice for GRAPHS menu item 
 graph_variety_observe = sort(unique(wines_df[wines_df$color == input$graph_color, 'variety']))
 
@@ -233,7 +264,6 @@ updateSelectizeInput(
   session, "graph_variety", 
   choices = graph_variety_observe
 ) 
-
 
 #MAPS menu item 
 
