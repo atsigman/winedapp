@@ -46,7 +46,7 @@ shinyServer(function(input, output, session){
   
 output$interactive_price_point_plot <- renderGvis(
 wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorvar = 'country', idvar = 'winery', options = list(title = "Price (in USD) vs. Points: Is There Any Correlation?", backgroundColor="#D3D3D3",
-                            hAxis="{title:'Price (in USD)', titleTextStyle:{color:'red'}}", vAxis = "{title: 'Points', titleTextStyle: {color: 'white'}}", legend="bottom", height = 400, width = 800))                                                                                                                               
+                            hAxis="{title:'Price (in USD)', titleTextStyle:{color:'red'}}", vAxis = "{title: 'Points', titleTextStyle: {color: 'white'}}", legend="bottom", height = 400, width = 1200))                                                                                                                               
   ) 
   
   #info boxes for Graphs menu item panels 
