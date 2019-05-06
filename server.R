@@ -44,10 +44,10 @@ shinyServer(function(input, output, session){
   
 #interactive bubble chart for wine explorer
   
-output$interactive_price_point_plot <- renderGvis(
-wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorvar = 'country', idvar = 'winery', options = list(title = "Price (in USD) vs. Points: Is There Any Correlation?", backgroundColor="#D3D3D3",
-                            hAxis="{title:'Price (in USD)', titleTextStyle:{color:'red'}}", vAxis = "{title: 'Points', titleTextStyle: {color: 'white'}}", legend="bottom", height = 400, width = 1200))                                                                                                                               
-  ) 
+output$interactive_price_point_plot <- renderPlotly({
+wine_rec_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shape = country, color = winery), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Selected Wines') 
+})
+   
   
   #info boxes for Graphs menu item panels 
     
@@ -84,7 +84,7 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  
  output$worldPricePointsCorr <- renderInfoBox({ 
    price_points_corr <- wines_df_country_graph %>% filter(country == input$graph_country) %>% summarise(corr = round(cor(price, points, method = 'pearson'), digits = 2)) %>% select(corr)
-   infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
+   infoBox('Price-Point Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
  
  output$worldRedPerc <- renderInfoBox({ 
@@ -130,7 +130,7 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  
  output$USPricePointsCorr <- renderInfoBox({ 
    price_points_corr <- wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% summarise(corr = round(cor(price, points, method = 'pearson'), digits = 2)) %>% select(corr)
-   infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
+   infoBox('Price-Point Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
  
  output$USRedPerc <- renderInfoBox({ 
@@ -177,7 +177,7 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  
  output$VarPricePointsCorr <- renderInfoBox({ 
    price_points_corr <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% summarise(corr = round(cor(price, points, method = 'pearson'), digits = 2)) %>% select(corr)
-   infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
+   infoBox('Price-Point Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
  
  
@@ -216,7 +216,7 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  
  output$DSPricePointsCorr <- renderInfoBox({ 
    price_points_corr <- wines_df_world_stats %>%  select(corr)
-   infoBox('Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
+   infoBox('Price-Point Correlation', price_points_corr, icon = icon('handshake'), color = 'teal') 
  }) 
  
  output$DSRedPerc <- renderInfoBox({ 
@@ -243,6 +243,14 @@ wine_rec_reactive() %>% gvisBubbleChart(xvar = 'price', yvar = 'points', colorva
  output$scatterByVariety <- renderPlotly({
   scatter_graph_Variety <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shape = country), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Top 100 Wines') 
 })
+ 
+ output$DSPriceDensity <- renderPlotly({
+   density_dsprice <- wines_df_country_graph %>% filter(price < 300) %>%  ggplot(aes(x = price, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Price Densities for Red and White Wines')
+ })
+ 
+ output$DSPointsDensity <- renderPlotly({
+    density_dspoints <- wines_df_country_graph  %>%  ggplot(aes(x = points, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Point Densities for Red and White Wines')
+ })
  
 
     #OBSERVE FUNCTIONS for relevant inputs 

@@ -8,7 +8,6 @@ library(maps)
 library(jpeg)
 library(plotly)
 
-
 shinyUI(dashboardPage(
 #header + skin  
     skin = 'purple', 
@@ -31,13 +30,13 @@ shinyUI(dashboardPage(
        tabItem(tabName = 'intro',  #intro 
                fluidRow(
                    box(
-                       h3("wineApp Interactive Wine Recommendations and Analysis"),
+                       h3("winedApp Interactive Wine Recommendations and Analysis"),
                        tags$p("Don't wind up with the wrong wine at the wrong time: unwind with the world's best!"), 
                        tags$p("This app provides insights into prices, ratings, descriptions, and geographic distribution of the world's most esteemed wines. Novice or connoisseur, consumer or seller, this app will meet your oenophile needs."), 
                        tags$p("In the Wine Explorer, you can enter your location, varietal, aroma, taste, and price range preferences, and retrieve information on compatible vintages."),
                        tags$p("The Global Insights feature offers map visualizations of international wine trends."), 
                        tags$p ("Graphs and Charts provides additional lenses into relationships amongst countries of origin, varietals, prices per bottle, and ratings."),
-                       tags$p("The data was sourced from 36,000 wine reviews on the"),  
+                       tags$p("The data was sourced from ca. 36,000 wine reviews on the"), 
                        tags$a(href = "https://www.winemag.com/", "WineEnthusiast site."),
                        tags$p(), 
                        tags$p("Further information was extracted from the"),
@@ -60,7 +59,7 @@ shinyUI(dashboardPage(
            "color",
            label = ("Pick Your Poison:"),
            choices = list("red" = "red", "white" = "white"),
-           selected = "white"),
+           selected = "red"),
        
        selectizeInput( 
          "keyword1", 
@@ -82,33 +81,32 @@ shinyUI(dashboardPage(
            "country",
            'Enter or select a country or countries:', 
            choices = sort(unique(wines_df$country)), 
-           multiple = T, 
-           selected = 'US'
-       ),
+           multiple = T
+          ),
        
         selectizeInput(
            "variety", 
            'Enter or select a wine variety or varieties (e.g., merlot, chardonnay...)
             [Note: some very common varieties not found in dataset.]', 
            choices = sort(unique(wines_df$variety)), 
-           multiple = T 
+           multiple = T
         ), 
        
        sliderInput(
            "price", 
            "Select a price range (in USD):", 
            min = min(wines_df$price),
-           max = 200, #due to outliers
-           value = c(50,150))), 
+           max = 300, #due to outliers
+           value = c(min,50))), 
        
        tabPanel("Wine List by Color, Description, and Price", 
-                fluidRow(box(width = 16, height = "80%", dataTableOutput("wine_descr_table")))),
+                fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_descr_table")))),
        
        tabPanel("Wine List by Country, Color, Variety, and Price", 
-       fluidRow(box(width = 16, height = "80%", dataTableOutput("wine_rec_table")))),
+       fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_rec_table")))),
        
        tabPanel("Price vs. Point Relationships for Selected Wines", 
-                fluidRow(box(width = 16, height = "80%", htmlOutput("interactive_price_point_plot"))))
+                fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_plot"))))
         
        )
     ),
@@ -119,7 +117,7 @@ shinyUI(dashboardPage(
             radioButtons(
               "world_map_type",
               label = ("Select map content:"),
-              choices = list("Wine distribution per country (excluding the US, Italy, and France)" = "wpc","Number of varieties per country" = "nv", "Average price per country" = 'apr', "Average points per country" = "apt"), 
+              choices = list("Number of wines per country (excluding the US, Italy, and France)" = "wpc","Number of varieties per country" = "nv", "Average price per country" = 'apr', "Average points per country" = "apt"), 
               selected = "wpc"),     
               fluidRow(box(width = 16, height = "80%", htmlOutput("world_map")))),
   
@@ -127,7 +125,7 @@ shinyUI(dashboardPage(
                      radioButtons(
                        "us_map_type",
                        label = ("Select map content:"),
-                       choices = list("Wine distribution per US State" = "wps","Number of varieties per state" = "nvs", "Average price per state" = 'aps', "Average points per state" = "apts"), 
+                       choices = list("Number of wines per US State" = "wps","Number of varieties per state" = "nvs", "Average price per state" = 'aps', "Average points per state" = "apts"), 
                        selected = "wps"),     
                      fluidRow(box(width = 16, height = "80%", htmlOutput("us_map"))))
              ) #tabsetpanel
@@ -158,8 +156,11 @@ shinyUI(dashboardPage(
                                ), 
                                
                                fluidRow(
-                                 infoBoxOutput("worldPricePointsCorr")
+                                 infoBoxOutput("worldPricePointsCorr"),
+                                 infoBoxOutput("worldRedPerc"),
+                                 infoBoxOutput("worldWhitePerc")
                                ),
+                               
                                fluidRow(
                                  plotlyOutput("scatterByCountry")
                                )
@@ -188,7 +189,9 @@ shinyUI(dashboardPage(
                                       ), 
                                         
                                       fluidRow(
-                                      infoBoxOutput("USPricePointsCorr")
+                                      infoBoxOutput("USPricePointsCorr"),
+                                      infoBoxOutput("USRedPerc"),
+                                      infoBoxOutput("USWhitePerc")
                                         ),
                                   
                                       fluidRow(
@@ -208,7 +211,7 @@ shinyUI(dashboardPage(
                                  "graph_variety",
                                  'Select a Variety:', 
                                  choices = sort(unique(wines_df_country_graph[wines_df_country_graph$country == 'US', 'province'])), 
-                                 multiple = F, 
+                                 multiple = F 
                                 ),
                                
                                fluidRow(
@@ -225,21 +228,44 @@ shinyUI(dashboardPage(
                                
                                fluidRow(
                                  infoBoxOutput("VarPricePointsCorr")
+                                
                                ),
                                
                                fluidRow(
                                  plotlyOutput("scatterByVariety")
                                )
-                              )
-                             )
-                           ) 
-                                       
-                                       
-  
-           ) #tabitems 
-          ) ##dashboardbody
-         ) #dashboard page 
-        ) #shinyUI
+                              ),
+                      
+                      tabPanel('Dataset Statistics',  
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxDSPrice"),
+                                 infoBoxOutput("meanDSPrice"),
+                                 infoBoxOutput("minDSPrice")
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxDSPoints"),
+                                 infoBoxOutput("meanDSPoints"),
+                                 infoBoxOutput("minDSPoints")
+                               ), 
+                               
+                               fluidRow(
+                                 infoBoxOutput("DSPricePointsCorr"),
+                                 infoBoxOutput("DSRedPerc"),
+                                 infoBoxOutput("DSWhitePerc") 
+                               ),
+                               fluidRow(
+                                 plotlyOutput('DSPriceDensity'),
+                                 plotlyOutput('DSPointsDensity')
+                                 ) #fluidRow
+                               ) #tabpanel 
+                             )#tabsetpanel
+                           ) #tabitem
+                        ) #tabitems 
+                      ) ##dashboardbody
+                    ) #dashboard page 
+                  ) #shinyUI
 
 
        
