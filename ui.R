@@ -53,7 +53,8 @@ shinyUI(dashboardPage(
        
       
        tabItem(tabName ='winerec', #wine explorer 
-       tabsetPanel(type = 'tabs',
+       navlistPanel(
+      'Input and Tables',  
        tabPanel('Input Fields', 
        radioButtons(
            "color",
@@ -61,55 +62,65 @@ shinyUI(dashboardPage(
            choices = list("red" = "red", "white" = "white"),
            selected = "red"),
        
+        selectizeInput(
+           "country",
+           'Select a country:', 
+           choices = sort(unique(wines_df$country)), 
+           selected = 'France',
+           multiple = F
+          ),
+       
+        selectizeInput(
+           "variety", 
+           'Select a wine variety:', 
+           choices = sort(unique(wines_df$variety)), 
+           multiple = F
+        ), 
+       
        selectizeInput( 
          "keyword1", 
-         "Enter or select a descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
-         choices = sort(common_words), 
+         "Select a descriptive term for preferred aroma or taste:",
+         choices = sort(unique(wines_df['keywords' != '', 'keywords'])),
          multiple = F,
          selected = sample(common_words, 1)
        ),
        
        selectizeInput( 
          "keyword2", 
-         "Enter or select a second descriptive term for preferred aroma or taste (e.g., full-bodied, smooth, dry, sweet, fruity...)",
-         choices = sort(common_words), 
+         "Select a second descriptive term:",
+         choices = sort(unique(wines_df['keywords' != '', 'keywords'])), 
          multiple = F,
          selected = sample(common_words, 1)
        ),
-        
-       selectizeInput(
-           "country",
-           'Enter or select a country or countries:', 
-           choices = sort(unique(wines_df$country)), 
-           multiple = T
-          ),
-       
-        selectizeInput(
-           "variety", 
-           'Enter or select a wine variety or varieties (e.g., merlot, chardonnay...)
-            [Note: some very common varieties not found in dataset.]', 
-           choices = sort(unique(wines_df$variety)), 
-           multiple = T
-        ), 
        
        sliderInput(
            "price", 
            "Select a price range (in USD):", 
            min = min(wines_df$price),
            max = 300, #due to outliers
-           value = c(min,50))), 
+           value = c(min,120))
+       
+          ), #input tabPanel 
        
        tabPanel("Wine List by Color, Description, and Price", 
                 fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_descr_table")))),
-       
+                
        tabPanel("Wine List by Country, Color, Variety, and Price", 
-       fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_rec_table")))),
+       fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_rec_table")))
        
-       tabPanel("Price vs. Point Relationships for Selected Wines", 
-                fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_plot"))))
-        
-       )
     ),
+       'Graphs', 
+    
+    tabPanel('Price vs. Points Graph: Wines by Description', 
+    fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_descr_plot")))
+    ),
+    tabPanel('Price vs. Points Graph: Wines by Country and Variety', 
+             fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_rec_plot")))
+         )
+       ) #navlistpanel 
+      ), #tabitem 
+    
+      
   
       tabItem(tabName ='maps',
           tabsetPanel(type = 'tabs',
@@ -132,7 +143,8 @@ shinyUI(dashboardPage(
            ), #tabitem
   
     tabItem(tabName ='graphs',
-            tabsetPanel(type = 'tabs',
+            navlistPanel('Graphs and Charts', 
+                         'Interactive: Geographic', 
                       tabPanel('By Country',  
                       
                                selectizeInput(
@@ -171,7 +183,7 @@ shinyUI(dashboardPage(
                                   selectizeInput(
                                     "graph_state",
                                      'Select a US State:', 
-                                      choices = sort(unique(wines_df_country_graph[wines_df_country_graph$country == 'US', 'province'])), 
+                                      choices = sort(unique(wines_df_us_graph$province)), 
                                       multiple = F, 
                                       selected = 'California'
                                       ),
@@ -198,7 +210,8 @@ shinyUI(dashboardPage(
                                       plotlyOutput("scatterByState")
                                       )
                                     ),
-                            tabPanel('By Variety',  
+                            'Interactive: Wine Varieties',
+                            tabPanel('By Color and Variety',  
                                
                                 radioButtons(
                                  "graph_color",
@@ -235,7 +248,7 @@ shinyUI(dashboardPage(
                                  plotlyOutput("scatterByVariety")
                                )
                               ),
-                      
+                          '-------------------------',
                       tabPanel('Dataset Statistics',  
                                
                                fluidRow(

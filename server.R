@@ -16,14 +16,15 @@ shinyServer(function(input, output, session){
   #wine explorer reactives: 
   
   wine_descr_reactive <- reactive({ 
-    wines_df %>% filter(color == input$color) %>% filter(input$price[1] < price & price < input$price[2]) %>% filter(grepl(input$keyword1, description) | grepl(input$keyword2, description))
+    wines_df %>% filter(color == input$color) %>% filter(input$price[1] < price & price < input$price[2]) %>% filter(keywords == input$keyword1 | keywords == input$keyword2)
   })
   
   wine_rec_reactive <- reactive({
   wines_df %>% filter(color == input$color) %>% filter (country %in% input$country) %>% filter(variety %in% input$variety) %>% 
-    filter(input$price[1] < price & price < input$price[2])
+    filter(input$price[1] < price & price < input$price[2]) 
   }) 
-
+  
+     
   #wine explorer outputs 
   
   output$wine_descr_table <- DT::renderDataTable(
@@ -42,10 +43,16 @@ shinyServer(function(input, output, session){
   ) 
 )
   
-#interactive bubble chart for wine explorer
+#interactive scatter plots for wines by description and by country/price 
   
-output$interactive_price_point_plot <- renderPlotly({
-wine_rec_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shape = country, color = winery), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Selected Wines') 
+output$interactive_price_point_descr_plot <- renderPlotly({
+     wine_descr_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = title), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('1. Price per Bottle vs. Points for Wines by Description') + theme(
+        plot.title=element_text(face='bold')) + theme(legend.position='none')
+  })  
+  
+output$interactive_price_point_rec_plot <- renderPlotly({
+wine_rec_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = title), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('2. Price per Bottle vs. Points for Wines by Country/Variety') + theme(
+   plot.title=element_text(face='bold')) + theme(legend.position='none')
 })
    
   
@@ -181,7 +188,6 @@ wine_rec_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shap
  }) 
  
  
- 
  #for the entire dataset: 
  
  output$maxDSPrice <- renderInfoBox({ 
@@ -233,36 +239,51 @@ wine_rec_reactive() %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shap
  #price-point plots by country, US state, variety 
  
  output$scatterByCountry <- renderPlotly({
-  scatter_graph_country <- wines_df_country_graph %>% filter(country == input$graph_country) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = color, shape = winery), alpha = 0.4)+ scale_color_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Top 100 Wines') 
+  scatter_graph_country <- wines_df_country_graph %>% filter(country == input$graph_country) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = title, shape = color), alpha = 0.4) + xlab('Price per Bottle (in USD)') + ylab('Points') + ggtitle('Price vs. Points: Selected Country Top 100 Wines') + theme(
+     plot.title=element_text(face='bold')) +theme(legend.position='none')
+    
  })
 
  output$scatterByState <- renderPlotly({
-  scatter_graph_state <- wines_df_country_graph %>% filter(country == 'US', province == input$graph_state) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = color, shape = winery), alpha = 0.4)+ scale_color_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Top 100 Wines') 
+  scatter_graph_state <- wines_df_us_graph %>% filter(province == input$graph_state) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = title, shape = color), alpha = 0.4) + xlab('Price per Bottle (in USD)') + ylab('Points') + ggtitle('Price vs. Points: Selected State Top 100 Wines') + theme(
+     plot.title=element_text(face='bold')) + theme(legend.position='none')
+  
 })
 
  output$scatterByVariety <- renderPlotly({
-  scatter_graph_Variety <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(shape = country), alpha = 0.4) + xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price per Bottle vs. Points for Top 100 Wines') 
+  scatter_graph_Variety <- wines_df_country_graph %>% filter(variety == input$graph_variety) %>% arrange(desc(points)) %>% head(100) %>% ggplot(aes(x = price, y = points)) + geom_point(aes(color = country), alpha = 0.4) +  xlab('Price per Bottle (in USD)')+ ylab('Points') + ggtitle('Price vs. Points: Selected Variety Top 100 Wines') + theme(
+     plot.title=element_text(face='bold')) + theme(legend.position='none')
 })
  
  output$DSPriceDensity <- renderPlotly({
-   density_dsprice <- wines_df_country_graph %>% filter(price < 300) %>%  ggplot(aes(x = price, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Price Densities for Red and White Wines')
+   density_dsprice <- wines_df_country_graph %>% filter(price < 300) %>%  ggplot(aes(x = price, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Price Densities for Red and White Wines') + theme(
+      plot.title=element_text(face='bold'))
+   
  })
  
  output$DSPointsDensity <- renderPlotly({
-    density_dspoints <- wines_df_country_graph  %>%  ggplot(aes(x = points, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Point Densities for Red and White Wines')
+    density_dspoints <- wines_df_country_graph  %>%  ggplot(aes(x = points, fill = color)) + geom_density() + scale_fill_manual(values = c("red" = "#800020", "white" = "#EADB9F")) + xlab('Price (in USD)') + ylab('Density') + ggtitle('Point Densities for Red and White Wines') + theme(
+       plot.title=element_text(face='bold'))
  })
  
 
     #OBSERVE FUNCTIONS for relevant inputs 
   
 observe({ 
-    
+   
 variety_observe = sort(unique(wines_df[wines_df$color == input$color & wines_df$country == input$country, 'variety']))
 
 updateSelectizeInput(
-    session, "variety", 
-    choices = variety_observe
-  )
+     session, "variety", 
+      choices = variety_observe 
+)    
+
+kw_2_observe = sort(unique(wines_df[wines_df$keywords != '' & wines_df$keywords != input$keyword1, 'keywords']))
+
+updateSelectizeInput(
+   session, "keyword2", 
+   choices = kw_2_observe
+)
 
 #observe color choice for GRAPHS menu item 
 graph_variety_observe = sort(unique(wines_df[wines_df$color == input$graph_color, 'variety']))

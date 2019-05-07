@@ -5,8 +5,24 @@ library(dplyr)
 #main dataframe
 wines_df <- read.csv('data/wine_revs.csv', stringsAsFactors = F)
 
+wines_df$keywords = strsplit(wines_df$keywords, ',')
+
 #common word list (for keywords)
-common_words <- unlist(str_split(readLines("data/common_words_and_bigrams.txt"), pattern = ","))
+common_words <- unlist(str_split(readLines("data/common_words_and_bigrams.txt"), pattern = ", "))
+
+common_words = as.list(common_words)
+
+#function to filter out keywords not in common words list 
+common_word_filter <- function(x){
+  lst = as.list(x)[[1]]
+  for (i in (1:length(lst))){
+    ifelse(lst[[i]] %in% common_words, return(lst[[i]]), return(''))
+  }
+}
+
+#function applied to wines_df dataframe 
+wines_df$keywords = sapply(wines_df$keywords, common_word_filter)
+
 
 #df's for maps 
 
@@ -21,7 +37,7 @@ wines_df_apt <- as.data.frame(wines_df %>% group_by(country) %>% summarise(avg_p
 
 
 #US 
-wines_df_us <- wines_df %>% filter(country == 'US')
+wines_df_us <- wines_df %>% filter(country == 'US') 
 
 wines_df_wps <- as.data.frame(wines_df_us %>%  group_by(province) %>% summarise(cnt = n())) 
 
@@ -37,6 +53,10 @@ wines_df_filtered <- wines_df %>% group_by(country) %>% summarise(cnt = n()) %>%
 
 wines_df_country_graph <- semi_join(wines_df, wines_df_filtered, by = 'country')
 
+wines_df_us_filtered <- wines_df %>% filter(country == 'US', province != 'America') %>% group_by(province) %>% summarise(cnt = n()) %>% filter(cnt > 2)
+  
+wines_df_us_graph <- semi_join(wines_df, wines_df_us_filtered, by = 'province')
+  
 #price and points stats for entire dataset 
 wines_df_world_stats <- wines_df %>%summarise(max_price = max(price), mean_price = round(mean(price)), min_price = min(price), max_points = max(points), mean_points = round(mean(points)), min_points = min(points), corr = round(cor(price, points, method = 'pearson'), digits = 2), red_perc = round((sum(color == 'red')/n()) * 100, digits = 2), white_perc =  round((sum(color == 'white')/n()) * 100, digits = 2)) 
 
