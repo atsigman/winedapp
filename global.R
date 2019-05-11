@@ -60,10 +60,13 @@ wines_df_us_graph <- semi_join(wines_df, wines_df_us_filtered, by = 'province')
 #price and points stats for entire dataset 
 wines_df_world_stats <- wines_df %>%summarise(max_price = max(price), mean_price = round(mean(price)), min_price = min(price), max_points = max(points), mean_points = round(mean(points)), min_points = min(points), corr = round(cor(price, points, method = 'pearson'), digits = 2), red_perc = round((sum(color == 'red')/n()) * 100, digits = 2), white_perc =  round((sum(color == 'white')/n()) * 100, digits = 2)) 
 
+wines_df_price_filtered = wines_df[wines_df$price < 300,]
 
 
+#statistical tests on red vs. white wines s
+t.test(price ~ color, data = wines_df_price_filtered, alternative = 'two.sided')
 
+t.test(points ~ color, data = wines_df_price_filtered, alternative = 'two.sided')
 
-
-
+var.test(price~color, wines_df_price_filtered, alternative = 'two.sided')
 
