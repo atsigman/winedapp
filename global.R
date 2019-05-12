@@ -3,8 +3,9 @@ library(stringr)
 library(dplyr)
 
 #main dataframe
-wines_df <- read.csv('data/wine_revs.csv', stringsAsFactors = F)
+wines_df <- read.csv('data/wines_df.csv', stringsAsFactors = F)
 
+wines_df[!is.na(wines_df$vintage), 'vintage']
 wines_df$keywords = strsplit(wines_df$keywords, ',')
 
 #common word list (for keywords)
@@ -46,6 +47,11 @@ wines_df_nvs <- as.data.frame(wines_df_us %>% group_by(province) %>% summarise(c
 wines_df_aps <- as.data.frame(wines_df_us %>% group_by(province) %>% summarise(avg_pr = mean(price))) 
 
 wines_df_apts <- as.data.frame(wines_df_us %>% group_by(province) %>% summarise(avg_pt = mean(points))) 
+
+#vintage
+
+wines_df_vintage <- wines_df %>% filter(!is.na(vintage)) 
+
 
 #df's for graphs: 
 #keep only countries with more than 1 wine in dataset in the interest of meaningful statistics 

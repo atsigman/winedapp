@@ -30,10 +30,12 @@ shinyUI(dashboardPage(
        tabItem(tabName = 'intro',  #intro 
                fluidRow(
                    box(
-                       h3("winedApp Interactive Wine Recommendations and Analysis"),
+                       background = 'maroon',
+                       h2('winedApp'),
+                       h3("Interactive Wine Trend Analysis Toolkit"),
                        tags$p("Don't wind up with the wrong wine at the wrong time: unwind with the world's best!"), 
                        tags$p("This app provides insights into prices, ratings, descriptions, and geographic distribution of the world's most esteemed wines. Novice or connoisseur, consumer or seller, this app will meet your oenophile needs."), 
-                       tags$p("In the Wine Explorer, you can enter your location, varietal, aroma, taste, and price range preferences, and retrieve information on compatible vintages."),
+                       tags$p("In the Wine Explorer, you can enter your location, varietal, aroma, taste, vintage, and price range preferences, and retrieve information on compatible titles."),
                        tags$p("The Global Insights feature offers map visualizations of international wine trends."), 
                        tags$p ("Graphs and Charts provides additional lenses into relationships amongst countries of origin, varietals, prices per bottle, and ratings."),
                        tags$p("The data was sourced from ca. 36,000 wine reviews on the"), 
@@ -54,11 +56,11 @@ shinyUI(dashboardPage(
       
        tabItem(tabName ='winerec', #wine explorer 
        navlistPanel(
-      'Input and Tables',  
+      'Input and Wine Lists',  
        tabPanel('Input Fields', 
        radioButtons(
            "color",
-           label = ("Pick Your Poison:"),
+           label = ("Pick your poison:"),
            choices = list("red" = "red", "white" = "white"),
            selected = "red"),
        
@@ -72,10 +74,12 @@ shinyUI(dashboardPage(
        
         selectizeInput(
            "variety", 
-           'Select a wine variety:', 
+           'Select a variety:', 
            choices = sort(unique(wines_df$variety)), 
            multiple = F
         ), 
+       
+      
        
        selectizeInput( 
          "keyword1", 
@@ -93,6 +97,13 @@ shinyUI(dashboardPage(
          selected = sample(common_words, 1)
        ),
        
+       selectizeInput(
+         "vintage", 
+         'Select a vintage (year):', 
+         choices = sort(unique(wines_df[!is.na(wines_df$vintage), 'vintage'])), 
+         multiple = F
+       ), 
+       
        sliderInput(
            "price", 
            "Select a price range (in USD):", 
@@ -101,22 +112,35 @@ shinyUI(dashboardPage(
            value = c(min,120))
        
           ), #input tabPanel 
-       
-       tabPanel("Wine List by Color, Description, and Price", 
-                fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_descr_table")))),
-                
+      
        tabPanel("Wine List by Country, Color, Variety, and Price", 
        fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_rec_table")))
+       ), 
        
-    ),
+       tabPanel("Wine List by Color, Description, and Price", 
+                fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_descr_table")))
+                ),
+       
+       tabPanel("Wine List by Color and Vintage", 
+                fluidRow(box(width = 16, height = "80%", DT::dataTableOutput("wine_vintage_table")))
+                ), 
+       
+  
        'Graphs', 
     
-    tabPanel('Price vs. Points Graph: Wines by Description', 
-    fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_descr_plot")))
-    ),
-    tabPanel('Price vs. Points Graph: Wines by Country and Variety', 
+    tabPanel('Price vs. Points Graph: Wines by Color, Country, and Variety', 
              fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_rec_plot")))
-         )
+             
+             ), 
+             
+    tabPanel('Price vs. Points Graph: Wines by Color and Description', 
+                      fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_descr_plot")))
+             ),
+    
+    tabPanel('Price vs. Points Graph: Wines by Color and Vintage', 
+             fluidRow(box(width = 16, height = "80%", plotlyOutput("interactive_price_point_vintage_plot")))
+    )
+         
        ) #navlistpanel 
       ), #tabitem 
     
@@ -215,15 +239,15 @@ shinyUI(dashboardPage(
                                
                                 radioButtons(
                                  "graph_color",
-                                 label = ("Pick Your Poison:"),
+                                 label = ("Pick your poison:"),
                                  choices = list("red" = "red", "white" = "white"),
                                  selected = "white"),
                                
                                
                                selectizeInput(
                                  "graph_variety",
-                                 'Select a Variety:', 
-                                 choices = sort(unique(wines_df_country_graph[wines_df_country_graph$country == 'US', 'province'])), 
+                                 'Select a variety:', 
+                                 choices = sort(unique(wines_df_country_graph$variety)), 
                                  multiple = F 
                                 ),
                                
@@ -248,6 +272,42 @@ shinyUI(dashboardPage(
                                  plotlyOutput("scatterByVariety")
                                )
                               ),
+                             
+                           'Interactive: Vintages', 
+                      
+                      
+                      tabPanel('By Vintage',  
+                               
+                               selectizeInput(
+                                 "graph_vintage",
+                                 'Select a vintage (year):', 
+                                 choices = sort(unique(wines_df_vintage$vintage)), 
+                                 multiple = F 
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxVintagePrice"),
+                                 infoBoxOutput("meanVintagePrice"),
+                                 infoBoxOutput("minVintagePrice")
+                               ),
+                               
+                               fluidRow(
+                                 infoBoxOutput("maxVintagePoints"),
+                                 infoBoxOutput("meanVintagePoints"),
+                                 infoBoxOutput("minVintagePoints")
+                               ), 
+                               
+                               fluidRow(
+                                 infoBoxOutput("VintagePricePointsCorr")
+                                 
+                               ),
+                               
+                               fluidRow(
+                                 plotlyOutput("scatterByVintage")
+                               )
+                      ),
+                      
+                          
                           '-------------------------',
                       tabPanel('Dataset Statistics',  
                                
@@ -272,13 +332,19 @@ shinyUI(dashboardPage(
                                  plotlyOutput('DSPriceDensity'),
                                  plotlyOutput('DSPointsDensity')
                                  ) #fluidRow
-                               ) #tabpanel 
-                             )#tabsetpanel
-                           ) #tabitem
-                        ) #tabitems 
-                      ) ##dashboardbody
-                    ) #dashboard page 
-                  ) #shinyUI
+                               ), #tabpanel 
+                      
+                      tabPanel('Red and White Wines Per Vintage', 
+                      fluidRow(
+                      plotlyOutput('DSVintBar')
+                      ) #fluidRow
+                      ) #tabpanel
+                     )#tabsetpanel
+                    ) #tabitem
+                   ) #tabitems 
+                  ) ##dashboardbody
+                ) #dashboard page 
+              ) #shinyUI
 
 
        
