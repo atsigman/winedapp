@@ -17,7 +17,7 @@ Don't wind up with the wrong wine at the wrong time: unwind with the world's bes
 
 This app provides insights into prices, ratings, descriptions, and geographic distribution of the world's most esteemed wines. Novice or connoisseur, consumer or seller, this app will meet your oenophile needs.
 
-In the Wine Explorer, you can enter your location, varietal, aroma, taste, and price range preferences, and retrieve information on compatible vintages.
+In the Wine Explorer, you can enter your location, varietal, aroma, taste, vintage,and price range preferences, and retrieve information on compatible wines. 
 
 The Global Insights feature offers map visualizations of international wine trends.
 
