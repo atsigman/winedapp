@@ -1,5 +1,5 @@
 # winedapp
-Wine recommendation/data analysis and visualization R Shiny web app 
+Wine recommendation/data analysis and visualization R Shiny web app. 
 
 Source files for winedApp R Shinydashboard app, which resides here: https://lxsigman.shinyapps.io/winedup_shiny_app/
 
